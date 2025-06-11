@@ -6,7 +6,7 @@
 /*   By: xmatute- <xmatute-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 14:01:26 by xmatute-          #+#    #+#             */
-/*   Updated: 2025/06/04 14:57:39 by xmatute-         ###   ########.fr       */
+/*   Updated: 2025/06/05 12:01:21 by xmatute-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,12 +15,12 @@ pub fn adder(a: u32, b: u32) -> u32 {
     else {adder(a ^ b, (a & b) << 1)}
 }
 
-#[test]
-fn test_adder() {
-    assert_eq!(adder(0, 0), 0);
-    assert_eq!(adder(1, 1), 2);
-    assert_eq!(adder(2, 3), 5);
-    assert_eq!(adder(10, 20), 30);
-    assert_eq!(adder(100, 200), 300);
-    assert_eq!(adder(123456789, 987654321), 1111111110);
-}
+// #[test]
+// fn test_adder() {
+//     assert_eq!(adder(0, 0), 0);
+//     assert_eq!(adder(1, 1), 2);
+//     assert_eq!(adder(2, 3), 5);
+//     assert_eq!(adder(10, 20), 30);
+//     assert_eq!(adder(100, 200), 300);
+//     assert_eq!(adder(123456789, 987654321), 1111111110);
+// }

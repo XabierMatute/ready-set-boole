@@ -2,7 +2,17 @@
 name = "ready-set-boole"
 version = "0.1.0"
 edition = "2021"
+default-run = "ready-set-boole"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+rand = "0.9"
+
+[[bin]]
+name = "ready-set-boole"
+path = "src/main.rs"
+
+[[bin]]
+name = "ex00"
+path = "src/ex00/main.rs"
