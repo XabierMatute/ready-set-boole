@@ -6,7 +6,7 @@
 /*   By: xmatute- <xmatute-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/05 12:25:11 by xmatute-          #+#    #+#             */
-/*   Updated: 2025/06/05 12:47:32 by xmatute-         ###   ########.fr       */
+/*   Updated: 2025/08/08 16:04:40 by xmatute-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@ use super::multiplier::multiplier;
 fn test_multiplier(a: u32, b: u32) -> u32 {
     let optained_result = multiplier(a, b);
     let expected_result = a.wrapping_mul(b);
+    println!("Testing {} * {} = {}", a, b, optained_result);
     assert_eq!(optained_result, expected_result, 
         "Expected {} * {} to equal {}, but got {}", a, b, expected_result, optained_result);
     optained_result
