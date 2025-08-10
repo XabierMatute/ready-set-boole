@@ -6,7 +6,7 @@
 /*   By: xmatute- <xmatute-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/05 11:55:01 by xmatute-          #+#    #+#             */
-/*   Updated: 2025/06/05 12:09:29 by xmatute-         ###   ########.fr       */
+/*   Updated: 2025/08/10 18:09:43 by xmatute-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@ use super::adder::adder;
 fn test_adder(a: u32, b: u32) -> u32 {
     let optained_result = adder(a, b);
     let expected_result = a.wrapping_add(b);
+    println!("Testing adder with {} + {} = {}", a, b, optained_result);
     assert_eq!(optained_result, expected_result, 
         "Expected {} + {} to equal {}, but got {}", a, b, expected_result, optained_result);
     optained_result

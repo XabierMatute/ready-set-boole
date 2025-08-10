@@ -17,3 +17,47 @@ path = "src/main.rs"
 [[bin]]
 name = "ex00"
 path = "src/ex00/main.rs"
+
+[[bin]]
+name = "ex01"
+path = "src/ex01/main.rs"
+
+[[bin]]
+name = "ex02"
+path = "src/ex02/main.rs"
+
+[[bin]]
+name = "ex03"
+path = "src/ex03/main.rs"
+
+[[bin]]
+name = "ex04"
+path = "src/ex04/main.rs"
+
+[[bin]]
+name = "ex05"
+path = "src/ex05/main.rs"
+
+[[bin]]
+name = "ex06"
+path = "src/ex06/main.rs"
+
+[[bin]]
+name = "ex07"
+path = "src/ex07/main.rs"
+
+[[bin]]
+name = "ex08"
+path = "src/ex08/main.rs"
+
+[[bin]]
+name = "ex09"
+path = "src/ex09/main.rs"
+
+[[bin]]
+name = "ex10"
+path = "src/ex10/main.rs"
+
+[[bin]]
+name = "ex11"
+path = "src/ex11/main.rs"
