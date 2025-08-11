@@ -6,7 +6,7 @@
 /*   By: xmatute- <xmatute-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/07 13:11:26 by xmatute-          #+#    #+#             */
-/*   Updated: 2025/08/10 20:35:04 by xmatute-         ###   ########.fr       */
+/*   Updated: 2025/08/11 13:16:30 by xmatute-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -142,7 +142,8 @@ impl Formula {
 
     pub fn to_truth_table(&self) -> String {
         let mut table = String::new();
-        let variables: Vec<char> = self.variables().collect();
+        let mut variables: Vec<char> = self.variables().collect();
+        variables.sort();
         let num_vars = variables.len();
 
         for var in &variables {
@@ -152,20 +153,86 @@ impl Formula {
         table.push_str(format!("{}|\n", "|---".repeat(num_vars + 1)).as_str());
 
         for i in 0..(1 << num_vars) {
-            let mut context = HashMap::new();
+        // for i in 0..(2u32.pow(num_vars as u32)) {
+            let mut current_values = HashMap::new();
             for (j, var) in variables.iter().enumerate() {
-                let value = (i & (1 << j)) != 0;
-                context.insert(*var, if value { Formula::True } else { Formula::False });
-                table.push_str(&format!("| {} ", if value { '1' } else { '0' }));
+                let value = (i >> j) & 1;
+                // let value = (i / 2u32.pow(j as u32)) % 2;
+                current_values.insert(*var, match value {
+                    0 => Formula::False,
+                    1 => Formula::True,
+                    _ => unreachable!("Unexpected value in truth table"),
+                });
+                table.push_str(&format!("| {} ", value.to_string()));
             }
 
-            let substituted_formula = self.substitute(&context);
-            let result = substituted_formula.eval();
-
-            table.push_str(&format!("| {} |\n", if result == Formula::True { '1' } else { '0' }));
+            table.push_str(&format!("| {} |\n", match self.substitute(&current_values).eval() {
+                Formula::True => '1',
+                Formula::False => '0',
+                _ => unreachable!("Unexpected result in truth table"),
+            }));
         }
 
         table
+    }
+
+    pub fn to_nnf(&self) -> Formula {
+        match self {
+            Formula::False | Formula::True | Formula::Variable(_) => self.clone(),
+            Formula::Not(inner) => match inner.to_nnf() {
+                Formula::True => Formula::False,
+                Formula::False => Formula::True,
+                Formula::Variable(c) => Formula::Not(Box::new(Formula::Variable(c))),
+                // First Law of Morgan
+                Formula::And(left, right) => Formula::Or(
+                    Box::new(Formula::Not(Box::new(*left)).to_nnf()),
+                    Box::new(Formula::Not(Box::new(*right)).to_nnf()),
+                ),
+                // Second Law of Morgan
+                Formula::Or(left, right) => Formula::And(
+                    Box::new(Formula::Not(Box::new(*left)).to_nnf()),
+                    Box::new(Formula::Not(Box::new(*right)).to_nnf()),
+                ),
+                // Elimination of double negation
+                Formula::Not(inner_inner) => *inner_inner,
+                _ => unreachable!("Unexpected formula in NNF conversion: {}", inner),
+
+            },
+            Formula::And(left, right) => Formula::And(
+                Box::new(left.to_nnf()),
+                Box::new(right.to_nnf()),
+            ),
+            Formula::Or(left, right) => Formula::Or(
+                Box::new(left.to_nnf()),
+                Box::new(right.to_nnf()),
+            ),
+            Formula::Xor(left, right) => Formula::Or(
+                Box::new(Formula::And(
+                    Box::new(left.to_nnf()),
+                    Box::new(Formula::Not(Box::new(right.to_nnf()))),
+                )),
+                Box::new(Formula::And(
+                    Box::new(Formula::Not(Box::new(left.to_nnf()))),
+                    Box::new(right.to_nnf()),
+                )),
+            ),
+            // Material conditions
+            Formula::Implication(left, right) => Formula::Or(
+                Box::new(Formula::Not(left.clone()).to_nnf()),
+                Box::new(right.to_nnf()),
+            ),
+            // Equivalence
+            Formula::Equivalence(left, right) => Formula::And(
+                Box::new(Formula::Or(
+                    Box::new(Formula::Not(left.clone()).to_nnf()),
+                    Box::new(right.to_nnf()),
+                )),
+                Box::new(Formula::Or(
+                    Box::new(Formula::Not(right.clone()).to_nnf()),
+                    Box::new(left.to_nnf()),
+                )),
+            ),            
+        }
     }
 }
 
@@ -200,7 +267,7 @@ impl FromStr for Formula {
             match c {
                 '0' => stack.push(Formula::False),
                 '1' => stack.push(Formula::True),
-                'A'..='Z' | 'a'..='z' => stack.push(Formula::Variable(c)),
+                'A'..='Z' => stack.push(Formula::Variable(c)),
                 '!' => {
                     let a = stack.pop().ok_or("Missing operand for negation")?;
                     stack.push(Formula::Not(Box::new(a)));
@@ -236,7 +303,7 @@ impl FromStr for Formula {
         }
 
         if stack.len() != 1 {
-            return Err(format!("Invalid formula: found {} extra operands", stack.len() - 1).into());
+            return Err(format!("Invalid formula: found {} extra operands:{:?}", stack.len() - 1, stack).into());
         }
 
         Ok(stack.pop().unwrap())
