@@ -6,15 +6,15 @@
 /*   By: xmatute- <xmatute-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/09 15:27:19 by xmatute-          #+#    #+#             */
-/*   Updated: 2025/08/13 17:49:17 by xmatute-         ###   ########.fr       */
+/*   Updated: 2025/08/13 17:55:41 by xmatute-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-use std::collections::HashSet;
+// use std::collections::HashSet;
 
-pub fn eval_set(formula: &str, sets: Vec<Vec<i32>>) -> Vec<i32> {
-    //wip
-    return vec![];
+// pub fn eval_set(formula: &str, sets: Vec<Vec<i32>>) -> Vec<i32> {
+//     //wip
+//     return vec![];
     
-}
+// }
 
