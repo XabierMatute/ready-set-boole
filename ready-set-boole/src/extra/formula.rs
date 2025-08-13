@@ -6,7 +6,7 @@
 /*   By: xmatute- <xmatute-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/07 13:11:26 by xmatute-          #+#    #+#             */
-/*   Updated: 2025/08/13 17:15:24 by xmatute-         ###   ########.fr       */
+/*   Updated: 2025/08/13 19:17:26 by xmatute-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@ pub enum Formula {                              // S M Description
     False,                                      // 0 ⊥ false
     True,                                       // 1 ⊤ true
     Variable(char),                             // A...Z A..Z Distinct variables with unknown values
+    Set(Vec<i32>),                              // {1, 2, 3} Set of integers
     Not(Box<Formula>),                          // ! ¬ Negation
     And(Box<Formula>, Box<Formula>),            // & ∧ Conjunction
     Or(Box<Formula>, Box<Formula>),             // | ∨ Disjunction
@@ -31,7 +32,8 @@ impl Formula {
         match self {
             Formula::False => Formula::False,
             Formula::True => Formula::True,
-            Formula::Variable(c) => Formula::Variable(*c), 
+            Formula::Variable(c) => Formula::Variable(*c),
+            Formula::Set(set) => Formula::Set(set.clone()),
             Formula::Not(inner) => match inner.eval() {
                 Formula::True => Formula::False,
                 Formula::False => Formula::True,
@@ -75,10 +77,96 @@ impl Formula {
         }
     }
 
+    pub fn eval_set(&self,  global_set: &Vec<i32>) -> Formula {
+        match self {
+            Formula::False => Formula::False,
+            Formula::True => Formula::True,
+            Formula::Variable(c) => Formula::Variable(*c),
+            Formula::Set(set) => Formula::Set(set.clone()),
+            Formula::Not(inner) => match inner.eval_set(global_set) {
+                Formula::True => Formula::False,
+                Formula::False => Formula::True,
+                Formula::Set(set) => {
+                    let filtered_set: Vec<i32> = global_set.iter().filter(|&&x| !set.contains(&x)).cloned().collect();
+                    Formula::Set(filtered_set)
+                }
+                other => Formula::Not(Box::new(other)),
+            },
+            Formula::And(left, right) => {
+                match (left.eval_set(global_set), right.eval_set(global_set)) {
+                    (Formula::False, _) | (_, Formula::False) => Formula::False,
+                    (Formula::True, r) => r,
+                    (l, Formula::True) => l,
+                    (l, r) if r == l => l,
+                    (Formula::Set(l_set), Formula::Set(r_set)) => {
+                        let intersection: Vec<i32> = l_set.iter().filter(|&&x| r_set.contains(&x)).cloned().collect();
+                        Formula::Set(intersection)
+                    }
+                    (l, r) => Formula::And(Box::new(l), Box::new(r)),
+                }
+            }
+            Formula::Or(left, right) => {
+                match (left.eval_set(global_set), right.eval_set(global_set)) {
+                    (Formula::True, _) | (_, Formula::True) => Formula::True,
+                    (Formula::False, r) => r,
+                    (l, Formula::False) => l,
+                    (l, r) if r == l => l,
+                    (Formula::Set(l_set), Formula::Set(r_set)) => {
+                        let union: Vec<i32> = l_set.iter().chain(r_set.iter()).cloned().collect();
+                        Formula::Set(union)
+                    }
+                    (l, r) => Formula::Or(Box::new(l), Box::new(r)),
+                }
+            }
+            Formula::Xor(left, right) => {
+                match (left.eval_set(global_set), right.eval_set(global_set)) {
+                    (Formula::False, r) => r,
+                    (l, Formula::False) => l,
+                    (Formula::True, r) => Formula::Not(Box::new(r)).eval_set(global_set),
+                    (l, Formula::True) => Formula::Not(Box::new(l)).eval_set(global_set),
+                    (l, r) if l == r => Formula::False,
+                    (Formula::Set(l_set), Formula::Set(r_set)) => {
+                        let xor: Vec<i32> = l_set.iter().filter(|&&x| !r_set.contains(&x)).cloned()
+                            .chain(r_set.iter().filter(|&&x| !l_set.contains(&x)).cloned())
+                            .collect();
+                        Formula::Set(xor)
+                    }
+                    (l, r) => Formula::Xor(Box::new(l), Box::new(r)),
+                }
+            }
+            Formula::Implication(left, right) => {
+                match (left.eval_set(global_set), right.eval_set(global_set)) {
+                    (Formula::False, _) | (_, Formula::True) => Formula::True,
+                    (Formula::True, r) => r,
+                    (l, Formula::False) => Formula::Not(Box::new(l)).eval_set(global_set),
+                    (Formula::Set(l_set), Formula::Set(r_set)) => {
+                        let implication: Vec<i32> = l_set.iter().filter(|&&x| !r_set.contains(&x)).cloned().collect();
+                        Formula::Set(implication)
+                    }
+                    (l, r) if l == r => Formula::True,
+                    (l, r) => Formula::Implication(Box::new(l), Box::new(r)),
+                }
+            }
+            Formula::Equivalence(left, right) => {
+                match (left.eval_set(global_set), right.eval_set(global_set)) {
+                    (Formula::True, Formula::True) | (Formula::False, Formula::False) => Formula::True,
+                    (Formula::True, Formula::False) | (Formula::False, Formula::True) => Formula::False,
+                    (l, r) if l == r => Formula::True,
+                    (Formula::Set(l_set), Formula::Set(r_set)) => {
+                        let equivalence: Vec<i32> = l_set.iter().filter(|&&x| r_set.contains(&x)).cloned().collect();
+                        Formula::Set(equivalence)
+                    }
+                    (l, r) => Formula::Equivalence(Box::new(l), Box::new(r)),
+                }
+            }
+        }
+    }
+
     pub fn substitute(&self, context: &std::collections::HashMap<char, Formula>) -> Formula {
         match self {
             Formula::False => Formula::False,
             Formula::True => Formula::True,
+            Formula::Set(set) => Formula::Set(set.clone()),
             Formula::Variable(var) => context.get(var).cloned().unwrap_or_else(|| Formula::Variable(*var)),
             Formula::Not(inner) => Formula::Not(Box::new(inner.substitute(context))),
             Formula::And(left, right) => Formula::And(
@@ -100,6 +188,39 @@ impl Formula {
             Formula::Equivalence(left, right) => Formula::Equivalence(
                 Box::new(left.substitute(context)),
                 Box::new(right.substitute(context)),
+            ),
+        }
+    }
+
+    pub fn substitute_set(&self, context: &std::collections::HashMap<char, Vec<i32>>) -> Formula {
+        match self {
+            Formula::False => Formula::False,
+            Formula::True => Formula::True,
+            Formula::Set(set) => Formula::Set(set.clone()),
+            Formula::Variable(var) => context.get(var).cloned().map_or_else(
+                || Formula::Variable(*var),
+                |set| Formula::Set(set.clone()),
+            ),
+            Formula::Not(inner) => Formula::Not(Box::new(inner.substitute_set(context))),
+            Formula::And(left, right) => Formula::And(
+                Box::new(left.substitute_set(context)),
+                Box::new(right.substitute_set(context)),
+            ),
+            Formula::Or(left, right) => Formula::Or(
+                Box::new(left.substitute_set(context)),
+                Box::new(right.substitute_set(context)),
+            ),
+            Formula::Xor(left, right) => Formula::Xor(
+                Box::new(left.substitute_set(context)),
+                Box::new(right.substitute_set(context)),
+            ),
+            Formula::Implication(left, right) => Formula::Implication(
+                Box::new(left.substitute_set(context)),
+                Box::new(right.substitute_set(context)),
+            ),
+            Formula::Equivalence(left, right) => Formula::Equivalence(
+                Box::new(left.substitute_set(context)),
+                Box::new(right.substitute_set(context)),
             ),
         }
     }
@@ -130,6 +251,10 @@ impl Formula {
         match self {
             Formula::False => "0".to_string(),
             Formula::True => "1".to_string(),
+            Formula::Set(set) => {
+                let set_str: String = set.iter().map(|n| n.to_string()).collect::<Vec<_>>().join(",");
+                format!("{{{}}}", set_str)
+            }
             Formula::Variable(var) => var.to_string(),
             Formula::Not(inner) => format!("{}!", inner.to_rpn()),
             Formula::And(left, right) => format!("{}{}&", left.to_rpn(), right.to_rpn()),
@@ -183,6 +308,7 @@ impl Formula {
     fn eliminate_complex_operators(&self) -> Formula {
         match self {
             Formula::False | Formula::True | Formula::Variable(_) => self.clone(),
+            Formula::Set(set) => Formula::Set(set.clone()),
             Formula::Not(inner) => Formula::Not(Box::new(inner.eliminate_complex_operators())),
             Formula::And(left, right) => Formula::And(
                 Box::new(left.eliminate_complex_operators()),
@@ -355,6 +481,10 @@ impl fmt::Display for Formula {
             Formula::False => write!(f, "False"),
             Formula::True => write!(f, "True"),
             Formula::Variable(var) => write!(f, "{}", var),
+            Formula::Set(set) => {
+                let set_str: String = set.iter().map(|n| n.to_string()).collect::<Vec<_>>().join(", ");
+                write!(f, "{{{}}}", set_str)
+            }
             Formula::Not(inner) => write!(f, "not {}", inner),
             Formula::And(left, right) => write!(f, "({} and {})", left, right),
             Formula::Or(left, right) => write!(f, "({} or {})", left, right),

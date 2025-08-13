@@ -6,7 +6,7 @@
 /*   By: xmatute- <xmatute-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/09 15:19:22 by xmatute-          #+#    #+#             */
-/*   Updated: 2025/08/13 17:29:01 by xmatute-         ###   ########.fr       */
+/*   Updated: 2025/08/13 19:36:15 by xmatute-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ mod tests {
     }
 
     #[test]
-    fn test_sat_extra_true() {
+    fn test_sat_extra_trivial() {
         assert!(sat("A!B&"));
         assert!(sat("A!B|"));
         assert!(sat("A!B^"));
@@ -74,4 +74,5 @@ mod tests {
     }
 
     //TODO: añade tests 
+
 }
