@@ -6,16 +6,20 @@
 /*   By: xmatute- <xmatute-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/07 13:11:26 by xmatute-          #+#    #+#             */
-/*   Updated: 2025/08/13 19:17:26 by xmatute-         ###   ########.fr       */
+/*   Updated: 2025/08/13 20:55:46 by xmatute-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+use std::fmt;
+use std::collections::HashMap;
+use std::collections::HashSet;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Formula {                              // S M Description
     False,                                      // 0 ⊥ false
     True,                                       // 1 ⊤ true
     Variable(char),                             // A...Z A..Z Distinct variables with unknown values
-    Set(Vec<i32>),                              // {1, 2, 3} Set of integers
+    Set(HashSet<i32>),                              // {1, 2, 3} Set of integers
     Not(Box<Formula>),                          // ! ¬ Negation
     And(Box<Formula>, Box<Formula>),            // & ∧ Conjunction
     Or(Box<Formula>, Box<Formula>),             // | ∨ Disjunction
@@ -24,8 +28,7 @@ pub enum Formula {                              // S M Description
     Equivalence(Box<Formula>, Box<Formula>),    // = ⇔ Logical equivalence
 }
 
-use std::fmt;
-use std::collections::HashMap;
+
 
 impl Formula {
     pub fn eval(&self) -> Formula {
@@ -77,7 +80,7 @@ impl Formula {
         }
     }
 
-    pub fn eval_set(&self,  global_set: &Vec<i32>) -> Formula {
+    pub fn eval_set(&self,  global_set: &HashSet<i32>) -> Formula {
         match self {
             Formula::False => Formula::False,
             Formula::True => Formula::True,
@@ -87,8 +90,8 @@ impl Formula {
                 Formula::True => Formula::False,
                 Formula::False => Formula::True,
                 Formula::Set(set) => {
-                    let filtered_set: Vec<i32> = global_set.iter().filter(|&&x| !set.contains(&x)).cloned().collect();
-                    Formula::Set(filtered_set)
+                    let complement = global_set.difference(&set).cloned().collect();
+                    Formula::Set(complement)
                 }
                 other => Formula::Not(Box::new(other)),
             },
@@ -99,7 +102,7 @@ impl Formula {
                     (l, Formula::True) => l,
                     (l, r) if r == l => l,
                     (Formula::Set(l_set), Formula::Set(r_set)) => {
-                        let intersection: Vec<i32> = l_set.iter().filter(|&&x| r_set.contains(&x)).cloned().collect();
+                        let intersection: HashSet<i32> = l_set.intersection(&r_set).cloned().collect();
                         Formula::Set(intersection)
                     }
                     (l, r) => Formula::And(Box::new(l), Box::new(r)),
@@ -112,7 +115,7 @@ impl Formula {
                     (l, Formula::False) => l,
                     (l, r) if r == l => l,
                     (Formula::Set(l_set), Formula::Set(r_set)) => {
-                        let union: Vec<i32> = l_set.iter().chain(r_set.iter()).cloned().collect();
+                        let union: HashSet<i32> = l_set.union(&r_set).cloned().collect();
                         Formula::Set(union)
                     }
                     (l, r) => Formula::Or(Box::new(l), Box::new(r)),
@@ -126,9 +129,7 @@ impl Formula {
                     (l, Formula::True) => Formula::Not(Box::new(l)).eval_set(global_set),
                     (l, r) if l == r => Formula::False,
                     (Formula::Set(l_set), Formula::Set(r_set)) => {
-                        let xor: Vec<i32> = l_set.iter().filter(|&&x| !r_set.contains(&x)).cloned()
-                            .chain(r_set.iter().filter(|&&x| !l_set.contains(&x)).cloned())
-                            .collect();
+                        let xor: HashSet<i32> = l_set.symmetric_difference(&r_set).cloned().collect();
                         Formula::Set(xor)
                     }
                     (l, r) => Formula::Xor(Box::new(l), Box::new(r)),
@@ -140,7 +141,7 @@ impl Formula {
                     (Formula::True, r) => r,
                     (l, Formula::False) => Formula::Not(Box::new(l)).eval_set(global_set),
                     (Formula::Set(l_set), Formula::Set(r_set)) => {
-                        let implication: Vec<i32> = l_set.iter().filter(|&&x| !r_set.contains(&x)).cloned().collect();
+                        let implication: HashSet<i32> = l_set.difference(&r_set).cloned().collect();
                         Formula::Set(implication)
                     }
                     (l, r) if l == r => Formula::True,
@@ -153,7 +154,7 @@ impl Formula {
                     (Formula::True, Formula::False) | (Formula::False, Formula::True) => Formula::False,
                     (l, r) if l == r => Formula::True,
                     (Formula::Set(l_set), Formula::Set(r_set)) => {
-                        let equivalence: Vec<i32> = l_set.iter().filter(|&&x| r_set.contains(&x)).cloned().collect();
+                        let equivalence: HashSet<i32> = l_set.intersection(&r_set).cloned().collect();
                         Formula::Set(equivalence)
                     }
                     (l, r) => Formula::Equivalence(Box::new(l), Box::new(r)),
@@ -199,7 +200,7 @@ impl Formula {
             Formula::Set(set) => Formula::Set(set.clone()),
             Formula::Variable(var) => context.get(var).cloned().map_or_else(
                 || Formula::Variable(*var),
-                |set| Formula::Set(set.clone()),
+                |set| Formula::Set(set.into_iter().collect())
             ),
             Formula::Not(inner) => Formula::Not(Box::new(inner.substitute_set(context))),
             Formula::And(left, right) => Formula::And(
