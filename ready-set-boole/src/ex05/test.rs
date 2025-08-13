@@ -6,7 +6,7 @@
 /*   By: xmatute- <xmatute-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/09 15:06:05 by xmatute-          #+#    #+#             */
-/*   Updated: 2025/08/11 13:23:19 by xmatute-         ###   ########.fr       */
+/*   Updated: 2025/08/12 11:22:32 by xmatute-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,6 +70,9 @@ mod tests {
     fn double_test_nnf(input: &str, expected: &str) {
         test_nnf(input);
 
+        println!("Double testing NNF for input: {}: {}", input, input.parse::<Formula>().expect("Parse error (Invalid formula)"));
+        println!("Expected NNF: {}: {}", expected, expected.parse::<Formula>().expect("Parse error (Invalid formula)"));
+        println!("Obtained NNF: {}: {}", negation_normal_form(input), negation_normal_form(input).parse::<Formula>().expect("Parse error (Invalid formula)"));
         test_nnf_compare(input, expected);
         test_nnf(input);
     }
@@ -95,34 +98,32 @@ mod tests {
     }
 
 
-//     println!("{}", negation_normal_form("AB&!"));
-// // A!B!|
-// println!("{}", negation_normal_form("AB|!"));
-// // A!B!&
-// println!("{}", negation_normal_form("AB>"));
-// // A!B|
-// println!("{}", negation_normal_form("AB="));
-// // AB&A!B!&|
-// println!("{}", negation_normal_form("AB|C&!"));
-// // A!B!&C!|
+    // println!("{}", negation_normal_form("AB&!"));
+    // // A!B!|
+    // println!("{}", negation_normal_form("AB|!"));
+    // // A!B!&
+    // println!("{}", negation_normal_form("AB>"));
+    // // A!B|
+    // println!("{}", negation_normal_form("AB="));
+    // // AB&A!B!&|
+    // println!("{}", negation_normal_form("AB|C&!"));
+    // // A!B!&C!|
     #[test]
     fn test_nnf_subject() { 
         double_test_nnf("AB&!", "A!B!|");
         double_test_nnf("AB|!", "A!B!&");
         double_test_nnf("AB>!", "AB!&"); // subject example is "A!B|", I think mine is prettier
-        double_test_nnf("AB=!", "A!B&");
-        // double_test_nnf("AB|C&!", "A!B!&C!");
-        
-        
+        double_test_nnf("AB=!", "AB!&BA!&|"); // subject example is "A!B&", I think mine is worse, but I don't want to implement a Karnaugh map or hardcode it
+        double_test_nnf("AB|C&!", "A!B!&C!|");      
     }
 
-    // #[test]
-    // fn test_nnf_extra() {
-    //     test_nnf("A B C & |");
-    //     test_nnf("A B C D & | E F & |");
-    //     test_nnf("A B C D & | E F & G H & | I J & |");
-    //     test_nnf("A B C D & | E F & G H & | I J & K L & |");
-    // }
+    #[test]
+    fn test_nnf_extra() {
+        test_nnf("A B C & |");
+        test_nnf("A B C D & | E > F & |");
+        test_nnf("A B C D & | E F & G ^ H & | I J = & |");
+        test_nnf("A B C D & | E F = & G H & | I J & > K L & | ! |");
+    }
 
     #[test]
     fn test_nnf_complex() {

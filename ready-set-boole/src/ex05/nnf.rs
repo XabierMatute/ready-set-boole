@@ -6,7 +6,7 @@
 /*   By: xmatute- <xmatute-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/09 14:51:59 by xmatute-          #+#    #+#             */
-/*   Updated: 2025/08/11 13:24:11 by xmatute-         ###   ########.fr       */
+/*   Updated: 2025/08/12 11:23:43 by xmatute-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,5 @@ pub fn negation_normal_form(formula: &str) -> String {
 
     let nnf_formula = parsed_formula.to_nnf();
 
-    nnf_formula.eval().to_rpn()
-    // nnf_formula.to_rpn()
+    nnf_formula.to_rpn()
 }

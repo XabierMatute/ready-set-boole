@@ -6,7 +6,7 @@
 /*   By: xmatute- <xmatute-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/07 13:11:26 by xmatute-          #+#    #+#             */
-/*   Updated: 2025/08/11 13:16:30 by xmatute-         ###   ########.fr       */
+/*   Updated: 2025/08/13 17:15:24 by xmatute-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -177,62 +177,173 @@ impl Formula {
     }
 
     pub fn to_nnf(&self) -> Formula {
+        self.eliminate_complex_operators().carry_negation()
+    }
+
+    fn eliminate_complex_operators(&self) -> Formula {
         match self {
             Formula::False | Formula::True | Formula::Variable(_) => self.clone(),
-            Formula::Not(inner) => match inner.to_nnf() {
-                Formula::True => Formula::False,
-                Formula::False => Formula::True,
-                Formula::Variable(c) => Formula::Not(Box::new(Formula::Variable(c))),
-                // First Law of Morgan
-                Formula::And(left, right) => Formula::Or(
-                    Box::new(Formula::Not(Box::new(*left)).to_nnf()),
-                    Box::new(Formula::Not(Box::new(*right)).to_nnf()),
-                ),
-                // Second Law of Morgan
-                Formula::Or(left, right) => Formula::And(
-                    Box::new(Formula::Not(Box::new(*left)).to_nnf()),
-                    Box::new(Formula::Not(Box::new(*right)).to_nnf()),
-                ),
-                // Elimination of double negation
-                Formula::Not(inner_inner) => *inner_inner,
-                _ => unreachable!("Unexpected formula in NNF conversion: {}", inner),
-
-            },
+            Formula::Not(inner) => Formula::Not(Box::new(inner.eliminate_complex_operators())),
             Formula::And(left, right) => Formula::And(
-                Box::new(left.to_nnf()),
-                Box::new(right.to_nnf()),
+                Box::new(left.eliminate_complex_operators()),
+                Box::new(right.eliminate_complex_operators()),
             ),
             Formula::Or(left, right) => Formula::Or(
-                Box::new(left.to_nnf()),
-                Box::new(right.to_nnf()),
+                Box::new(left.eliminate_complex_operators()),
+                Box::new(right.eliminate_complex_operators()),
             ),
             Formula::Xor(left, right) => Formula::Or(
                 Box::new(Formula::And(
-                    Box::new(left.to_nnf()),
-                    Box::new(Formula::Not(Box::new(right.to_nnf()))),
+                    Box::new(left.eliminate_complex_operators()),
+                    Box::new(Formula::Not(Box::new(right.eliminate_complex_operators()))),
                 )),
                 Box::new(Formula::And(
-                    Box::new(Formula::Not(Box::new(left.to_nnf()))),
-                    Box::new(right.to_nnf()),
+                    Box::new(Formula::Not(Box::new(left.eliminate_complex_operators()))),
+                    Box::new(right.eliminate_complex_operators()),
                 )),
             ),
-            // Material conditions
             Formula::Implication(left, right) => Formula::Or(
-                Box::new(Formula::Not(left.clone()).to_nnf()),
-                Box::new(right.to_nnf()),
+                Box::new(Formula::Not(Box::new(left.eliminate_complex_operators()))),
+                Box::new(right.eliminate_complex_operators()),
             ),
-            // Equivalence
             Formula::Equivalence(left, right) => Formula::And(
                 Box::new(Formula::Or(
-                    Box::new(Formula::Not(left.clone()).to_nnf()),
-                    Box::new(right.to_nnf()),
+                    Box::new(Formula::Not(Box::new(left.eliminate_complex_operators()))),
+                    Box::new(right.eliminate_complex_operators()),
                 )),
                 Box::new(Formula::Or(
-                    Box::new(Formula::Not(right.clone()).to_nnf()),
-                    Box::new(left.to_nnf()),
+                    Box::new(Formula::Not(Box::new(right.eliminate_complex_operators()))),
+                    Box::new(left.eliminate_complex_operators()),
                 )),
-            ),            
+            ),
+            // literally unreachable
+            // _ => unreachable!("Unexpected formula in complex operator elimination: {}", self),
         }
+    }
+
+    fn carry_negation(&self) -> Formula {
+        match self {
+            Formula::False | Formula::True | Formula::Variable(_) => self.clone(),
+            Formula::Not(inner) => match inner.carry_negation() {
+                Formula::True => Formula::False,
+                Formula::False => Formula::True,
+                Formula::Variable(c) => Formula::Not(Box::new(Formula::Variable(c))),
+                //Elimination of double negation
+                Formula::Not(inner_inner) => *inner_inner,
+                //First Law of Morgan
+                Formula::And(left, right) => {
+                    Formula::Or(Box::new(Formula::Not(Box::new(*left)).carry_negation()),
+                                Box::new(Formula::Not(Box::new(*right)).carry_negation()))
+                }
+                //Second Law of Morgan
+                Formula::Or(left, right) => {
+                    Formula::And(Box::new(Formula::Not(Box::new(*left)).carry_negation()),
+                                 Box::new(Formula::Not(Box::new(*right)).carry_negation()))
+                }
+                _ => unreachable!("Unexpected formula in NNF conversion: {}", inner),               
+            },
+            Formula::And(left, right) => Formula::And(
+                Box::new(left.carry_negation()),
+                Box::new(right.carry_negation()),
+            ),
+            Formula::Or(left, right) => Formula::Or(
+                Box::new(left.carry_negation()),
+                Box::new(right.carry_negation()),
+            ),
+            _ => unreachable!("Unexpected formula in NNF conversion: {}", self),
+        }
+    }
+
+    pub fn to_cnf(&self) -> Formula {
+        // self.to_nnf().carry_conjunction()
+        self.to_nnf().carry_disjunction().carry_conjunction()
+    }
+    
+    fn carry_disjunction(&self) -> Formula {
+        match self {
+            Formula::False | Formula::True | Formula::Variable(_) => self.clone(),
+            Formula::Not(inner) => Formula::Not(Box::new(inner.carry_disjunction())),
+            Formula::And(left, right) => Formula::And(
+                Box::new(left.carry_disjunction()),
+                Box::new(right.carry_disjunction()),
+            ),
+            Formula::Or(left, right) => {
+                let left_cnf = left.carry_disjunction();
+                let right_cnf = right.carry_disjunction();
+                match (left_cnf, right_cnf) {
+                    (Formula::And(ll, lr), Formula::And(rl, rr)) => {
+                        Formula::And(
+                            Box::new(Formula::And(
+                                Box::new(Formula::Or(Box::new(*ll.clone()), Box::new(*rl.clone())).carry_disjunction()),
+                                Box::new(Formula::Or(Box::new(*lr.clone()), Box::new(*rr.clone())).carry_disjunction()),
+                            )),
+                            Box::new(Formula::And(
+                                Box::new(Formula::Or(Box::new(*ll), Box::new(*rr)).carry_disjunction()),
+                                Box::new(Formula::Or(Box::new(*lr), Box::new(*rl)).carry_disjunction()),
+                            )),
+                        )
+
+                    }
+                    (Formula::And(ll, lr), r) => {
+                        Formula::And(Box::new(Formula::Or(Box::new(*ll), Box::new(r.clone())).carry_disjunction()),
+                                     Box::new(Formula::Or(Box::new(*lr), Box::new(r)).carry_disjunction()))
+                    }
+                    (l, Formula::And(rl, rr)) => {
+                        Formula::And(Box::new(Formula::Or(Box::new(l.clone()), Box::new(*rl)).carry_disjunction()),
+                                     Box::new(Formula::Or(Box::new(l), Box::new(*rr)).carry_disjunction()))
+                    }
+                    (l, r) => Formula::Or(Box::new(l), Box::new(r)),
+                }
+            }
+            _ => unreachable!("Unexpected formula in CNF conversion: {}", self),
+        }
+    }
+
+    fn carry_conjunction(&self) -> Formula {
+        match self {
+            Formula::False | Formula::True | Formula::Variable(_) | Formula::Not(_) | Formula::Or(_, _) => self.clone(),
+            Formula::And(left, right) => {
+                match (left.carry_conjunction(), right.carry_conjunction()) {
+                    (Formula::And(ll, lr), r) => {
+                        Formula::And(
+                            Box::new(*ll),
+                            Box::new(Formula::And(
+                                Box::new(*lr),
+                                Box::new(r),
+                            )),
+                        )
+                    }
+                    (l, r) => {
+                        Formula::And(Box::new(l), Box::new(r))
+                    }
+                }
+            }
+            _ => unreachable!("Unexpected formula in CNF conversion: {}", self),
+        }
+    }
+
+    pub fn is_satisfiable(&self) -> bool {
+        let variables: Vec<char> = self.variables().collect();
+        let num_vars = variables.len();
+
+        for i in 0..(1 << num_vars) {
+            let mut current_values = HashMap::new();
+            for (j, var) in variables.iter().enumerate() {
+                let value = (i >> j) & 1;
+                // let value = (i / 2u32.pow(j as u32)) % 2;
+                current_values.insert(*var, match value {
+                    0 => Formula::False,
+                    1 => Formula::True,
+                    _ => unreachable!("Unexpected value in truth table"),
+                });
+            }
+
+            if self.substitute(&current_values).eval() == Formula::True {
+                return true; // Satisfiable
+            }
+        }
+
+        false // Unsatisfiable
     }
 }
 

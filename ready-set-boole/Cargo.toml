@@ -9,6 +9,7 @@ default-run = "ready-set-boole"
 [dependencies]
 rand = "0.9"
 gray-codes = "0.1.1"
+regex = "1.7"
 
 [[bin]]
 name = "ready-set-boole"
