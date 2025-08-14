@@ -6,7 +6,7 @@
 /*   By: xmatute- <xmatute-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/07 13:11:26 by xmatute-          #+#    #+#             */
-/*   Updated: 2025/08/13 20:55:46 by xmatute-         ###   ########.fr       */
+/*   Updated: 2025/08/14 16:20:33 by xmatute-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ pub enum Formula {                              // S M Description
     False,                                      // 0 ⊥ false
     True,                                       // 1 ⊤ true
     Variable(char),                             // A...Z A..Z Distinct variables with unknown values
-    Set(HashSet<i32>),                              // {1, 2, 3} Set of integers
+    Set(HashSet<i32>),                          // {1, 2, 3} Set of integers
     Not(Box<Formula>),                          // ! ¬ Negation
     And(Box<Formula>, Box<Formula>),            // & ∧ Conjunction
     Or(Box<Formula>, Box<Formula>),             // | ∨ Disjunction
