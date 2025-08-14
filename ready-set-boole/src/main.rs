@@ -6,9 +6,12 @@
 /*   By: xmatute- <xmatute-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/04 14:18:55 by xmatute-          #+#    #+#             */
-/*   Updated: 2025/08/13 20:46:01 by xmatute-         ###   ########.fr       */
+/*   Updated: 2025/08/14 16:42:35 by xmatute-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+#![allow(unused_imports)]
+#![allow(dead_code)]
 
 fn debug_format(n: u32) -> String {
     format!("{0:#032b} {0}", n)
