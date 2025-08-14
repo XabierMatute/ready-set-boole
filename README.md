@@ -2,107 +2,83 @@
 
 ## Overview
 
-**Ready-Set-Boole** is a work-in-progress project written in **Rust** that explores Boolean algebra concepts and operations. This is my first medium-sized project in Rust, and it serves as a learning experience to deepen my understanding of both Rust programming and Boolean algebra. The project implements fundamental Boolean operations, Gray code generation, and formula evaluation, showcasing the power and efficiency of Rust for mathematical and logical computations.
+**Ready-Set-Boole** is a project written in **Rust** that explores a wide range of Boolean algebra concepts and operations. This project serves as a comprehensive exercise to deepen the understanding of both Rust programming and logical computations, from basic bitwise arithmetic to advanced topics like SAT solvers and set theory evaluation.
 
-The project is modular, with each exercise focusing on a specific aspect of Boolean algebra. It includes unit tests to ensure correctness and reliability, and the code is structured to be extensible for future enhancements.
+The project is modular, with each exercise focusing on a specific concept. It includes a robust testing suite to ensure correctness and a central `Formula` engine that powers many of the logical exercises.
 
 ## Features
 
-### Boolean Operations
-- **Adder**:
-  - Implements a binary adder using bitwise operations and recursion.
-  - Handles edge cases and large numbers.
-  - File: [`adder.rs`](ready-set-boole/src/ex00/adder.rs)
-- **Multiplier**:
-  - Implements a binary multiplier using Rust's wrapping multiplication.
-  - Includes tests for zero, one, basic, random, and edge cases.
-  - File: [`multiplier.rs`](ready-set-boole/src/ex01/multiplier.rs)
+The project is divided into several exercises, each building upon previous concepts:
 
-### Gray Code
-- **Gray Code Generator**:
-  - Generates Gray codes for a given number using bitwise operations.
-  - File: [`gray_code.rs`](ready-set-boole/src/ex02/gray_code.rs)
+### Core Logic and Arithmetic
+-   **ex00: Bitwise Adder**: Implements a binary adder using only bitwise operations in an iterative fashion.
+    -   File: [`adder.rs`](ready-set-boole/src/ex00/adder.rs)
+-   **ex01: Bitwise Multiplier**: Implements a binary multiplier using the bitwise adder and shift operations.
+    -   File: [`multiplier.rs`](ready-set-boole/src/ex01/multiplier.rs)
+-   **ex02: Gray Code**: Converts an integer to its Gray code equivalent using bitwise XOR.
+    -   File: [`gray_code.rs`](ready-set-boole/src/ex02/gray_code.rs)
 
-### Formula Evaluation
-- **Boolean Formula Evaluator**:
-  - Evaluates Boolean formulas using a stack-based approach.
-  - Supports operators like `!`, `&`, `|`, `^`, `>`, and `=`.
-  - File: [`eval_formula.rs`](ready-set-boole/src/ex03/eval_formula.rs)
-- **Formula Evaluator v2**:
-  - An alternative implementation of the formula evaluator.
-  - File: [`eval_formula_v2.rs`](ready-set-boole/src/ex03/eval_formula_v2.rs)
+### Boolean Formula Engine
+A powerful formula engine is implemented in `extra/formula.rs`, supporting parsing, evaluation, and transformation of logical expressions.
+
+-   **ex03: Formula Evaluation**: Evaluates Boolean formulas expressed in Reverse Polish Notation (RPN).
+    -   File: [`eval_formula.rs`](ready-set-boole/src/ex03/eval_formula.rs)
+-   **ex04: Truth Table Generator**: Generates and prints a complete truth table for any given Boolean formula.
+    -   File: [`truth_table.rs`](ready-set-boole/src/ex04/truth_table.rs)
+-   **ex05: Negation Normal Form (NNF)**: Converts a formula into its NNF, pushing negations inward.
+    -   File: [`nnf.rs`](ready-set-boole/src/ex05/nnf.rs)
+-   **ex06: Conjunctive Normal Form (CNF)**: Converts a formula into its CNF, essential for SAT solvers.
+    -   File: [`cnf.rs`](ready-set-boole/src/ex06/cnf.rs)
+-   **ex07: SAT Solver**: Determines if a Boolean formula is satisfiable by testing all possible variable assignments.
+    -   File: [`sat.rs`](ready-set-boole/src/ex07/sat.rs)
+
+### Set Theory and Advanced Applications
+-   **ex08: Powerset**: Generates the powerset (the set of all subsets) of a given set of integers.
+    -   File: [`powerset.rs`](ready-set-boole/src/ex08/powerset.rs)
+-   **ex09: Set Evaluation**: Evaluates a Boolean formula where variables represent sets, performing set operations (union, intersection, complement).
+    -   File: [`set_evaluation.rs`](ready-set-boole/src/ex09/set_evaluation.rs)
+-   **ex10: Z-order Curve Mapping**: Maps 2D coordinates (`u16`, `u16`) to a single `f64` value using a Z-order curve (Morton code), preserving locality.
+    -   File: [`curve.rs`](ready-set-boole/src/ex10/curve.rs)
+-   **ex11: Inverse Z-order Curve**: Implements the inverse function to decode a `f64` value back into its original 2D coordinates.
+    -   File: [`inverse_function.rs`](ready-set-boole/src/ex11/inverse_function.rs)
 
 ### Unit Testing
-- Comprehensive unit tests for each module:
-  - **Adder Tests**: [`test.rs`](ready-set-boole/src/ex00/test.rs)
-  - **Multiplier Tests**: [`test.rs`](ready-set-boole/src/ex01/test.rs)
-  - **Formula Evaluator Tests**: [`test.rs`](ready-set-boole/src/ex03/test.rs)
+-   Comprehensive unit tests for each module ensure correctness and reliability across all functionalities.
+    -   Example: [`ex07/test.rs`](ready-set-boole/src/ex07/test.rs), [`ex11/test.rs`](ready-set-boole/src/ex11/test.rs)
 
 ## Code Structure
 
 ### Modules
-- **Adder**: Implements binary addition using recursion.
-- **Multiplier**: Handles binary multiplication with edge case testing.
-- **Gray Code**: Generates Gray codes using bitwise operations.
-- **Formula Evaluator**: Evaluates Boolean formulas with stack-based logic.
+-   **`ex00` to `ex11`**: Each directory contains a specific, self-contained exercise.
+-   **`extra::formula`**: A central, reusable module that defines the `Formula` enum and its associated methods for parsing, evaluation, and transformation. This is the core of exercises `ex03` through `ex09`.
 
-### Tests
-- Each module includes extensive unit tests to validate functionality and handle edge cases.
-
-### Utilities
-- **Stack-Based Logic**: Used in formula evaluation for efficient operator handling.
-
-## Competencies Involved
-
-### Technical Skills
-- **Rust Programming**:
-  - Learning Rust's syntax, ownership model, and error handling.
-  - Using features like pattern matching, recursion, and bitwise operations.
-- **Boolean Algebra**:
-  - Implementing fundamental operations like addition, multiplication, and formula evaluation.
-  - Understanding Gray code generation and its applications.
-- **Unit Testing**:
-  - Writing comprehensive tests to ensure correctness and reliability.
-
-### Problem-Solving
-- **Edge Case Handling**:
-  - Managing scenarios like zero, large numbers, and invalid inputs.
-- **Optimization**:
-  - Using efficient algorithms and Rust's performance-oriented features.
-
-### Personal Growth
-- **Learning Rust**:
-  - Gaining confidence in a new programming language.
-- **Exploring Algebra**:
-  - Deepening understanding of Boolean algebra concepts.
-
-## Reflections
-
-Working on **Ready-Set-Boole** has been an exciting and challenging experience. As my first medium-sized project in Rust, it has pushed me to learn and apply Rust's unique features while exploring the mathematical world of Boolean algebra. Although the project is still a work-in-progress, it has already provided valuable insights into both programming and problem-solving. I look forward to completing it and expanding its functionality in the future.
+### Binaries
+-   Each exercise can be run as a separate binary, allowing for focused testing and demonstration. The `Cargo.toml` is configured to build each `main.rs` file.
 
 ## How to Run
 
-1. Clone the repository:
-   ```sh
-   git clone https://github.com/xmatute-/ready-set-boole.git
-   cd ready-set-boole
-   ```
-2. Run tests to validate functionality:
-   ```sh
-   cargo test
-   ```
-3. Execute individual modules:
-   ```sh
-   cargo run --bin <module_name>
-   ```
+1.  Clone the repository:
+    ```sh
+    git clone https://github.com/xmatute-/ready-set-boole.git
+    cd ready-set-boole/ready-set-boole
+    ```
+2.  Run tests to validate all functionalities:
+    ```sh
+    cargo test
+    ```
+3.  Execute an individual exercise's binary:
+    ```sh
+    # Example for SAT solver (ex07)
+    cargo run --bin ex07 "AB|A!&"
 
-## Status
+    # Example for Powerset (ex08)
+    cargo run --bin ex08 "1 2 3"
+    ```
 
-This project is a **work-in-progress**. Current focus areas include:
-- Refining the formula evaluator.
-- Adding more advanced Boolean operations.
-- Improving code documentation and comments.
+## Reflections
+
+Working on **Ready-Set-Boole** has been an exciting and challenging experience. As my first medium-sized project in Rust, it has pushed me to learn and apply Rust's unique features while exploring the mathematical world of Boolean algebra. Completing this project has provided valuable insights into both programming and problem-solving, from low-level bitwise logic to higher-level abstract algebraic structures.
 
 ## Acknowledgments
 
-Special thanks to the **Rust community** for providing resources and support. This project has been a rewarding journey into both programming and mathematics, and I look forward to continuing my exploration of Rust and Boolean algebra.
+Special thanks to the **Rust community** for providing excellent documentation, resources, and support. This project has been a rewarding journey into both programming and mathematics.
