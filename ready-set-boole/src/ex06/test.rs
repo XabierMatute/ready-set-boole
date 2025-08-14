@@ -6,7 +6,7 @@
 /*   By: xmatute- <xmatute-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/09 15:06:16 by xmatute-          #+#    #+#             */
-/*   Updated: 2025/08/13 17:14:12 by xmatute-         ###   ########.fr       */
+/*   Updated: 2025/08/14 16:29:52 by xmatute-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,5 +99,8 @@ mod tests {
         test_cnf("A B C D > > > !");
         test_cnf("A B C D = = = !");
         test_cnf("A B C D & | ! >");
+        test_cnf("A!B&CD|^!J=A>G&");
+
+        
     }
 }
