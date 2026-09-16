@@ -140,11 +140,12 @@ impl Formula {
                     (Formula::False, _) | (_, Formula::True) => Formula::True,
                     (Formula::True, r) => r,
                     (l, Formula::False) => Formula::Not(Box::new(l)).eval_set(global_set),
+                    (l, r) if l == r => Formula::True,
                     (Formula::Set(l_set), Formula::Set(r_set)) => {
-                        let implication: HashSet<i32> = l_set.difference(&r_set).cloned().collect();
+                        let not_l: HashSet<i32> = global_set.difference(&l_set).cloned().collect();
+                        let implication: HashSet<i32> = not_l.difference(&r_set).cloned().collect();
                         Formula::Set(implication)
                     }
-                    (l, r) if l == r => Formula::True,
                     (l, r) => Formula::Implication(Box::new(l), Box::new(r)),
                 }
             }
