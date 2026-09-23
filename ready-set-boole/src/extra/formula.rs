@@ -127,7 +127,7 @@ impl Formula {
                     (l, Formula::False) => l,
                     (Formula::True, r) => Formula::Not(Box::new(r)).eval_set(global_set),
                     (l, Formula::True) => Formula::Not(Box::new(l)).eval_set(global_set),
-                    (l, r) if l == r => Formula::False,
+                    // (l, r) if l == r => Formula::False,
                     (Formula::Set(l_set), Formula::Set(r_set)) => {
                         let xor: HashSet<i32> = l_set.symmetric_difference(&r_set).cloned().collect();
                         Formula::Set(xor)
@@ -140,10 +140,10 @@ impl Formula {
                     (Formula::False, _) | (_, Formula::True) => Formula::True,
                     (Formula::True, r) => r,
                     (l, Formula::False) => Formula::Not(Box::new(l)).eval_set(global_set),
-                    (l, r) if l == r => Formula::True,
+                    // (l, r) if l == r => Formula::True,
                     (Formula::Set(l_set), Formula::Set(r_set)) => {
                         let not_l: HashSet<i32> = global_set.difference(&l_set).cloned().collect();
-                        let implication: HashSet<i32> = not_l.difference(&r_set).cloned().collect();
+                        let implication: HashSet<i32> = not_l.union(&r_set).cloned().collect();
                         Formula::Set(implication)
                     }
                     (l, r) => Formula::Implication(Box::new(l), Box::new(r)),
@@ -153,9 +153,12 @@ impl Formula {
                 match (left.eval_set(global_set), right.eval_set(global_set)) {
                     (Formula::True, Formula::True) | (Formula::False, Formula::False) => Formula::True,
                     (Formula::True, Formula::False) | (Formula::False, Formula::True) => Formula::False,
-                    (l, r) if l == r => Formula::True,
+                    // (l, r) if l == r => Formula::True,
                     (Formula::Set(l_set), Formula::Set(r_set)) => {
-                        let equivalence: HashSet<i32> = l_set.intersection(&r_set).cloned().collect();
+                        let xor: HashSet<i32> = l_set.symmetric_difference(&r_set).cloned().collect();
+                        print!("XOR: {:?}\n", xor);
+                        let equivalence: HashSet<i32> = global_set.difference(&xor).cloned().collect();
+                        print!("Equivalence: {:?}\n", equivalence);
                         Formula::Set(equivalence)
                     }
                     (l, r) => Formula::Equivalence(Box::new(l), Box::new(r)),
@@ -497,6 +500,7 @@ impl fmt::Display for Formula {
     }
 }
 
+use std::print;
 use std::str::FromStr;
 use std::error::Error;
 
